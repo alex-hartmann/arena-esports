@@ -159,7 +159,10 @@ php artisan optimize:clear
 
 # Rodar testes
 php artisan test
-🗺️ Roadmap
+```
+---
+
+## 🗺️ Roadmap
 Sprint 1 – Correções e dívida técnica (N+1, transações, typos)
 
 Sprint 2 – Middleware de role + permissões
@@ -177,6 +180,8 @@ Sprint 7 – Páginas CEO (gestão de tenants, relatórios, logs)
 **Pós-MVP** – Squad Generator (integração completa com serviço C#)
 
 Sprint 8 – Time estável entre temporadas (refatoração estrutural)
+
+---
 
 📄 Licença
 MIT
