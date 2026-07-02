@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Esport Arena — Case study de projeto | Laravel + Vue + Inertia</title>
+<meta name="description" content="Case study técnico do Esport Arena: plataforma SaaS para gestão de ligas de FIFA/EA FC, com draft ao vivo, multitenancy e classificação em tempo real.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<meta property="og:title" content="Esport Arena — Case study de projeto | Laravel + Vue + Inertia">
+<meta property="og:description" content="Plataforma SaaS para gestão de ligas de FIFA/EA FC com draft ao vivo, multitenancy e classificação em tempo real. Projeto pessoal.">
+<meta property="og:image" content="https://github.com/alex-hartmann/arena-esports/blob/main/assets/admin-campeonato-detalhes.png">
+<meta property="og:url" content="https://github.com/alex-hartmann/arena-esports//">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+/* ===== SEUS ESTILOS EXISTENTES ===== */
+:root{
+  --bg-void:#070b09;
+  --bg-deep:#0a100d;
+  --bg-surface:#0e1613;
+  --bg-surface-2:#121c18;
+  --line:#1c2b24;
+  --line-bright:rgba(0,255,148,0.25);
+  --green:#00ff94;
+  --green-glow:rgba(0,255,148,0.35);
+  --blue:#3d9dff;
+  --gold:#f4c430;
+  --red:#ff4d5e;
+  --text-hi:#eafff2;
+  --text-mid:#a9c2b7;
+  --text-low:#5f7a70;
+  --font-display:'Rajdhani',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg-void);color:var(--text-hi);font-family:var(--font-body);line-height:1.55;overflow-x:hidden;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(0,255,148,0.10), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(61,157,255,0.07), transparent 55%);
+  pointer-events:none;z-index:0;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;position:relative;z-index:1;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;letter-spacing:0.01em;}
+a{color:inherit;text-decoration:none;}
+.mono{font-family:var(--font-mono);}
+.eyebrow{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--green);
+  display:flex;align-items:center;gap:8px;margin-bottom:14px;
+}
+.eyebrow::before{content:'';width:6px;height:6px;background:var(--green);border-radius:1px;box-shadow:0 0 8px var(--green-glow);}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:50;background:rgba(7,11,9,0.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1180px;margin:0 auto;}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:0.03em;}
+.logo .badge{background:var(--green);color:#00160c;font-family:var(--font-mono);font-size:9.5px;font-weight:700;padding:3px 7px;border-radius:4px;letter-spacing:0.06em;}
+.nav-links{display:flex;gap:30px;font-size:14px;color:var(--text-mid);}
+.nav-links a:hover{color:var(--text-hi);}
+.nav-cta{background:var(--green);color:#00160c;font-weight:700;font-family:var(--font-display);font-size:14px;padding:10px 18px;border-radius:7px;transition:box-shadow .2s, transform .2s;}
+.nav-cta:hover{box-shadow:0 0 22px var(--green-glow);transform:translateY(-1px);}
+@media(max-width:820px){.nav-links{display:none;}}
+
+/* HERO */
+.hero{padding:70px 0 44px;}
+.status-strip{
+  display:inline-flex;align-items:center;gap:10px;background:var(--bg-surface);border:1px solid var(--line);
+  border-radius:100px;padding:7px 16px 7px 8px;font-size:12.5px;color:var(--text-mid);margin-bottom:26px;flex-wrap:wrap;
+}
+.status-strip .pill{background:rgba(0,255,148,0.12);color:var(--green);font-family:var(--font-mono);font-size:10.5px;padding:3px 9px;border-radius:100px;border:1px solid var(--line-bright);}
+.status-strip .pill.mvp{background:#00ff94;color:#00160c;border-color:#00ff94;}
+.hero h1{font-size:clamp(34px,5vw,54px);line-height:1.05;max-width:820px;}
+.hero h1 .accent{color:var(--green);text-shadow:0 0 30px var(--green-glow);}
+.hero p.lead{margin-top:20px;font-size:17px;color:var(--text-mid);max-width:640px;line-height:1.7;}
+.hero-cta{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap;}
+.btn-primary{background:var(--green);color:#00160c;font-family:var(--font-display);font-weight:700;font-size:15.5px;padding:14px 26px;border-radius:8px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 24px rgba(0,255,148,0.18);transition:transform .18s, box-shadow .18s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,255,148,0.3);}
+.btn-ghost{border:1px solid var(--line-bright);color:var(--text-hi);font-family:var(--font-display);font-weight:600;font-size:15.5px;padding:14px 24px;border-radius:8px;transition:background .18s,border-color .18s;}
+.btn-ghost:hover{background:rgba(0,255,148,0.06);border-color:var(--green);}
+.stack-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:38px;}
+.stack-chip{border:1px solid var(--line);background:var(--bg-surface);padding:8px 14px;border-radius:8px;font-family:var(--font-mono);font-size:12px;color:var(--text-mid);display:flex;align-items:center;gap:7px;}
+.stack-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+.stack-chip.future{opacity:0.55;}
+.stack-chip.future .dot{background:var(--text-low);}
+
+/* SCREEN GALLERY */
+.gallery-band{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-deep);padding:56px 0;margin-top:56px;}
+.gallery-scroll{display:flex;gap:22px;overflow-x:auto;padding:8px 4px 20px;scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
+.gallery-scroll::-webkit-scrollbar{height:6px;}
+.gallery-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+.gallery-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;flex-wrap:wrap;gap:14px;}
+.gallery-head h2{font-size:24px;}
+.gallery-head p{color:var(--text-low);font-size:13px;font-family:var(--font-mono);}
+.gcard{flex:0 0 auto;width:230px;}
+.gphone{
+  border:1px solid var(--line);border-radius:22px;padding:8px;background:#050908;
+  box-shadow:0 20px 50px rgba(0,0,0,0.55);
+  cursor:pointer;
+  transition:transform 0.2s, box-shadow 0.2s;
+}
+.gphone:hover{transform:scale(1.02);box-shadow:0 24px 60px rgba(0,0,0,0.8);}
+.gphone img{width:100%;display:block;border-radius:15px;}
+.gcard .cap{margin-top:14px;padding:0 2px;}
+.gcard .cap .tag{font-family:var(--font-mono);font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:0.06em;}
+.gcard .cap h4{font-size:15px;margin-top:4px;color:var(--text-hi);}
+.gcard .cap p{font-size:12.5px;color:var(--text-low);margin-top:3px;line-height:1.5;}
+
+/* ===== LIGHTBOX ===== */
+.lightbox-overlay{
+  position:fixed;
+  top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.92);
+  backdrop-filter:blur(8px);
+  z-index:9999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  cursor:pointer;
+}
+.lightbox-overlay.active{display:flex;}
+.lightbox-overlay .lightbox-close{
+  position:absolute;
+  top:20px; right:30px;
+  font-size:36px;
+  color:#fff;
+  font-weight:300;
+  cursor:pointer;
+  transition:transform 0.2s;
+  z-index:10000;
+}
+.lightbox-overlay .lightbox-close:hover{transform:rotate(90deg);}
+.lightbox-overlay img{
+  max-width:90vw;
+  max-height:90vh;
+  object-fit:contain;
+  border-radius:8px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.8);
+  cursor:default;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+@media(max-width:640px){
+  .lightbox-overlay .lightbox-close{top:10px;right:15px;font-size:28px;}
+  .lightbox-overlay img{max-width:95vw;max-height:85vh;}
+}
+
+/* (o restante dos seus estilos continua igual) */
+/* ... */
+/* Seus estilos existentes abaixo (não repeti tudo para não alongar) */
+/* Mas mantenha a seção "/* SECTION GENERIC" até o final, pois já estão no seu arquivo. */
+
+/* ===== O restante do seu CSS original ===== */
+section{padding:96px 0;}
+.section-head{max-width:660px;margin-bottom:52px;}
+.section-head h2{font-size:clamp(26px,3.4vw,36px);}
+.section-head p{color:var(--text-mid);margin-top:14px;font-size:15px;line-height:1.7;}
+
+.about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:50px;}
+@media(max-width:900px){.about-grid{grid-template-columns:1fr;}}
+.about-grid p{color:var(--text-mid);font-size:15.5px;line-height:1.8;margin-bottom:16px;}
+.about-grid strong{color:var(--text-hi);}
+.stat-card{background:var(--bg-surface);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:14px;}
+.stat-card .num{font-family:var(--font-mono);font-size:26px;color:var(--green);font-weight:600;}
+.stat-card .lbl{font-size:13px;color:var(--text-mid);margin-top:4px;}
+.milestone-list{list-style:none;padding:0;margin:20px 0;}
+.milestone-list li{display:flex;gap:10px;align-items:flex-start;color:var(--text-mid);font-size:14px;margin-bottom:8px;}
+.milestone-list li::before{content:'✓';color:var(--green);font-weight:700;}
+
+.challenge-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+@media(max-width:820px){.challenge-grid{grid-template-columns:1fr;}}
+.challenge-card{background:var(--bg-surface);border:1px solid var(--line);border-radius:14px;padding:26px;transition:border-color .2s, transform .2s;}
+.challenge-card:hover{border-color:var(--line-bright);transform:translateY(-3px);}
+.challenge-card .tag{font-family:var(--font-mono);font-size:10.5px;color:var(--blue);text-transform:uppercase;letter-spacing:0.05em;}
+.challenge-card h4{font-size:17px;margin:8px 0;color:var(--text-hi);}
+.challenge-card p{font-size:13.8px;color:var(--text-mid);line-height:1.65;}
+.challenge-card .sol{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:13.2px;color:var(--text-mid);}
+.challenge-card .sol strong{color:var(--green);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:4px;}
+
+.draft-section{background:var(--bg-deep);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.draft-layout{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+@media(max-width:900px){.draft-layout{grid-template-columns:1fr;}}
+.snake-grid{display:flex;flex-direction:column;gap:6px;}
+.snake-row{display:flex;gap:6px;}
+.snake-row.reverse{flex-direction:row-reverse;}
+.snake-cell{flex:1;aspect-ratio:1.3;border-radius:6px;background:var(--bg-surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--text-low);}
+.snake-cell.lit{border-color:var(--green);color:var(--green);background:rgba(0,255,148,0.07);}
+.snake-row-label{font-family:var(--font-mono);font-size:9.5px;color:var(--text-low);margin-bottom:2px;letter-spacing:0.05em;}
+.draft-facts{display:flex;flex-direction:column;gap:16px;margin-top:26px;}
+.draft-fact{display:flex;gap:14px;align-items:flex-start;}
+.draft-fact .n{font-family:var(--font-mono);color:var(--green);font-size:13px;border:1px solid var(--line-bright);width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.draft-fact p{font-size:14px;color:var(--text-mid);line-height:1.55;}
+.draft-fact strong{color:var(--text-hi);}
+
+.rules-table{width:100%;border-collapse:collapse;background:var(--bg-surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.rules-table th{text-align:left;background:var(--bg-surface-2);color:var(--green);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;padding:14px 20px;border-bottom:1px solid var(--line);}
+.rules-table td{padding:16px 20px;border-bottom:1px solid var(--line);font-size:14px;color:var(--text-mid);}
+.rules-table tr:last-child td{border-bottom:none;}
+.rules-table td.area{color:var(--text-hi);font-weight:600;font-family:var(--font-display);font-size:15px;white-space:nowrap;}
+
+.roadmap{display:flex;flex-direction:column;border-left:2px solid var(--line);margin-left:6px;}
+.rm-item{padding:18px 0 18px 28px;position:relative;}
+.rm-item::before{content:'';position:absolute;left:-7px;top:22px;width:12px;height:12px;border-radius:50%;background:var(--bg-void);border:2px solid var(--text-low);}
+.rm-item.done::before{border-color:var(--green);background:var(--green);}
+.rm-item.current::before{border-color:var(--green);box-shadow:0 0 0 4px rgba(0,255,148,0.15);}
+.rm-item .sprint{font-family:var(--font-mono);font-size:10.5px;color:var(--text-low);text-transform:uppercase;letter-spacing:0.06em;}
+.rm-item.done .sprint{color:var(--green);}
+.rm-item.current .sprint{color:var(--gold);}
+.rm-item h4{font-size:16px;margin-top:4px;color:var(--text-hi);}
+.rm-item p{font-size:13.3px;color:var(--text-mid);margin-top:4px;}
+.rm-item .check{color:var(--green);margin-right:6px;}
+
+.final-cta{background:var(--bg-surface);border:1px solid var(--line-bright);border-radius:20px;padding:60px 46px;text-align:center;position:relative;overflow:hidden;}
+.final-cta::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 500px 300px at 50% 0%, rgba(0,255,148,0.12), transparent 70%);pointer-events:none;}
+.final-cta h2{font-size:clamp(24px,3.6vw,34px);position:relative;}
+.final-cta p{color:var(--text-mid);margin:14px auto 28px;max-width:480px;font-size:15px;position:relative;}
+.final-cta .hero-cta{justify-content:center;position:relative;}
+.note{font-size:12px;color:var(--text-low);margin-top:22px;position:relative;}
+
+footer{border-top:1px solid var(--line);padding:36px 0;}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+footer .fmark{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:15px;}
+footer .fmark .badge{background:var(--green);color:#00160c;font-family:var(--font-mono);font-size:8.5px;padding:2px 6px;border-radius:3px;}
+footer p.copy{color:var(--text-low);font-size:12.5px;}
+footer .flinks{display:flex;gap:20px;font-size:13px;color:var(--text-mid);}
+footer .flinks a:hover{color:var(--green);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">ESPORT ARENA <span class="badge">CASE STUDY</span></div>
+    <div class="nav-links">
+      <a href="#telas">Telas</a>
+      <a href="#desafios">Desafios técnicos</a>
+      <a href="#regras">Regras de negócio</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+    <a href="https://www.linkedin.com/in/alexander-hartmann17/" class="nav-cta">Falar comigo</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="status-strip">
+      <span class="pill mvp">MVP funcional</span>
+      <span class="pill">Projeto pessoal</span>
+      Sprints 1 a 6 entregues · próximo: painel CEO (Sprint 7) · Testes automatizados (Pest) rodando
+    </div>
+    <h1>Esport Arena — um SaaS completo para ligas de <span class="accent">FIFA/EA FC</span>, construído do zero.</h1>
+    <p class="lead">Este projeto nasceu de um problema que eu via em toda liga amadora: organizador perdendo horas montando squad no braço, controlando resultado em planilha e atualizando tabela na mão. Resolvi construir a plataforma que faria isso sozinha — do draft ao vivo à classificação em tempo real.</p>
+    <div class="hero-cta">
+      <a href="https://www.linkedin.com/in/alexander-hartmann17/" class="btn-primary">Ver perfil no LinkedIn →</a>
+      <a href="#telas" class="btn-ghost">Ver as telas do projeto</a>
+    </div>
+    <div class="stack-row">
+      <div class="stack-chip"><span class="dot"></span>PHP 8.4 + Laravel 11</div>
+      <div class="stack-chip"><span class="dot"></span>Vue 3 (Composition API)</div>
+      <div class="stack-chip"><span class="dot"></span>Inertia.js + Vite</div>
+      <div class="stack-chip"><span class="dot"></span>MySQL / MariaDB</div>
+      <div class="stack-chip"><span class="dot"></span>Multitenancy</div>
+      <div class="stack-chip"><span class="dot"></span>Redis + Horizon (planejado)</div>
+      <div class="stack-chip"><span class="dot"></span>Pest (testes)</div>
+    </div>
+  </div>
+</header>
+
+<div class="gallery-band" id="telas">
+  <div class="wrap">
+    <div class="gallery-head">
+      <h2>Dentro do painel</h2>
+      <p>8 telas reais · role para o lado →</p>
+    </div>
+    <div class="gallery-scroll">
+      <!-- Cada .gphone agora tem um atributo onclick para abrir o lightbox -->
+      <div class="gcard">
+        <div class="gphone" onclick="openLightbox(this.querySelector('img'))">
+          <img src="assets/admin-dashboard.png" alt="Dashboard Meu Negócio do Esport Arena">
+        </div>
+        <div class="cap"><div class="tag">Dashboard</div><h4>Meu negócio</h4><p>Visão geral do tenant: campeonatos, times, uso do plano e ações rápidas.</p></div>
+      </div>
+      <div class="gcard">
+        <div class="gphone" onclick="openLightbox(this.querySelector('img'))">
+          <img src="assets/admin-criarcampeonato.png" alt="Modal de criação de novo campeonato">
+        </div>
+        <div class="cap"><div class="tag">Campeonatos</div><h4>Criar campeonato</h4><p>Formato, número de times, sistema de draft e prize pool em um modal só.</p></div>
+      </div>
+      <div class="gcard">
+        <div class="gphone" onclick="openLightbox(this.querySelector('img'))">
+          <img src="assets/admin-campeonatos.png" alt="Listagem de campeonatos ativos">
+        </div>
+        <div class="cap"><div class="tag">Campeonatos</div><h4>Meus campeonatos</h4><p>Status, formato e ocupação de vagas visíveis de cara.</p></div>
+      </div>
+      <div class="gcard">
+        <div class="gphone" onclick="openLightbox(this.querySelector('img'))">
+          <img src="assets/admin-cadastrartime.png" alt="Modal de cadastro de time">
+        </div>
+        <div class="cap"><div class="tag">Times</div><h4>Cadastrar time</h4><p>Vincula um usuário dono ao time, com validação de vaga única.</p></div>
+      </div>
+      <div class="gcard">
+        <div class="gphone" onclick="openLightbox(this.querySelector('img'))">
+          <img src="assets/admin-cadastrar-jogador.png" alt="Modal de cadastro de usuário">
+        </div>
+        <div class="cap"><div class="tag">Usuários</div><h4>Cadastrar jogador</h4><p>Admin cria contas de jogador direto do painel, sem fricção.</p></div>
+      </div>
+      <div class="gcard">
+        <div class="gphone" onclick="openLightbox(this.querySelector('img'))">
+          <img src="assets/admin-draft.png" alt="Tela de draft ao vivo com histórico de picks">
+        </div>
+        <div class="cap"><div class="tag">Draft</div><h4>Draft ao vivo</h4><p>Progresso em tempo real e histórico de picks por rodada.</p></div>
+      </div>
+      <div class="gcard">
+        <div class="gphone" onclick="openLightbox(this.querySelector('img'))">
+          <img src="assets/admin-campeonato-detalhes.png" alt="Página de detalhes do campeonato com classificação">
+        </div>
+        <div class="cap"><div class="tag">Classificação</div><h4>Detalhes do campeonato</h4><p>Tabela ao vivo, gols na liga e prize pool em um só lugar.</p></div>
+      </div>
+      <div class="gcard">
+        <div class="gphone" onclick="openLightbox(this.querySelector('img'))">
+          <img src="assets/squad-generator.png" alt="Tela do Squad Generator">
+        </div>
+        <div class="cap">
+          <div class="tag">Exclusivo <span style="background:#f4c430;color:#00160c;padding:0 6px;border-radius:3px;font-size:9px;margin-left:6px;">🚧 Em dev</span></div>
+          <h4>Squad generator</h4>
+          <p>Interface pronta e serviço C# existente. Integração para gerar o arquivo .squad real está em andamento.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LIGHTBOX OVERLAY ===== -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox(event)">
+  <span class="lightbox-close" onclick="closeLightbox(event)">✕</span>
+  <img id="lightbox-img" src="" alt="Imagem ampliada">
+</div>
+
+<!-- ========== SEÇÕES RESTANTES (Sobre, Desafios, Draft, Regras, Roadmap, Contato, Footer) ========== -->
+<!-- Mantenha exatamente o mesmo conteúdo que você já tinha, pois só adicionei o lightbox. -->
+<!-- Vou copiar o restante do seu HTML para manter a integridade, mas você pode reaproveitar o seu próprio. -->
+
+<section id="sobre">
+  <div class="wrap about-grid">
+    <div>
+      <div class="eyebrow">Sobre o projeto</div>
+      <h2 style="font-size:30px;margin-bottom:20px;">Por que eu construí isso.</h2>
+      <p>O Esport Arena automatiza o ciclo de vida inteiro de uma liga de e-sports: <strong>criação de campeonatos, gestão de times e jogadores, draft ao vivo, geração de partidas, inserção de resultados e classificação em tempo real</strong> — tudo em poucos cliques, no lugar de planilha e grupo de WhatsApp.</p>
+      <p>É um projeto pessoal, com <strong>repositório privado</strong>, onde assumi as decisões de arquitetura, modelagem de dados e experiência de uso de ponta a ponta — do banco ao componente Vue na tela do usuário.</p>
+      <p>O código-fonte não é público, mas o <strong>README completo</strong> está disponível e posso mostrar mais detalhes, trechos de implementação ou uma demonstração ao vivo em conversa.</p>
+      
+      <h4 style="margin-top:28px;color:var(--green);">Já entregue:</h4>
+      <ul class="milestone-list">
+        <li>Draft serpentine com timer real e proteção contra duplicidade</li>
+        <li>Classificação automática com desempate por saldo e gols marcados</li>
+        <li>Geração de partidas em Pontos Corridos (turno e returno) e Mata-mata (árvore completa)</li>
+        <li>Páginas do jogador com dados reais (Home, Time, Partidas, Classificação)</li>
+        <li>Mercado de transferências com leilão, compra direta, anti-snipe e expiração automática</li>
+        <li>Dashboard admin com estatísticas reais e gráficos</li>
+        <li>Sistema de auditoria e soft deletes</li>
+        <li>Testes automatizados (Pest) cobrindo serviços críticos</li>
+      </ul>
+    </div>
+    <div>
+      <div class="stat-card"><div class="num">20.749</div><div class="lbl">jogadores importados via CSV, com clube, seleção e atributos técnicos</div></div>
+      <div class="stat-card"><div class="num">3 papéis</div><div class="lbl">hierarquia de permissão: ceo > admin > player, isolada por tenant</div></div>
+      <div class="stat-card"><div class="num">10 rodadas</div><div class="lbl">de draft serpentine, com timer de 30s e proteção contra clique duplo</div></div>
+      <div class="stat-card"><div class="num">50+</div><div class="lbl">testes automatizados (Pest) escritos para serviços críticos</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="desafios">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Desafios técnicos</div>
+      <h2>Problemas de engenharia que precisei resolver.</h2>
+      <p>Alguns dos pontos mais interessantes de construir — e como resolvi cada um.</p>
+    </div>
+    <div class="challenge-grid">
+      <div class="challenge-card">
+        <div class="tag">Tempo real sem websocket</div>
+        <h4>Timer de draft de 30 segundos</h4>
+        <p>O draft ao vivo precisa de um cronômetro sincronizado entre todos os participantes, sem a complexidade de manter uma conexão websocket dedicada.</p>
+        <div class="sol"><strong>Solução</strong>Estado do turno em cache no servidor, com polling do frontend a cada 1 segundo — simples, previsível e fácil de depurar.</div>
+      </div>
+      <div class="challenge-card">
+        <div class="tag">Consistência de dados</div>
+        <h4>Classificação sempre correta</h4>
+        <p>Toda vez que um resultado é validado, pontos, saldo de gols e gols marcados de todos os times do campeonato precisam refletir isso instantaneamente.</p>
+        <div class="sol"><strong>Solução</strong>Um serviço dedicado (StandingsServices) recalcula a tabela inteira a partir das partidas validadas, sem depender de contadores incrementais que podem dessincronizar.</div>
+      </div>
+      <div class="challenge-card">
+        <div class="tag">Isolamento de dados</div>
+        <h4>Multitenancy real</h4>
+        <p>Cada organizador de liga precisa enxergar só os próprios campeonatos, times e jogadores — nunca dados de outro admin na plataforma.</p>
+        <div class="sol"><strong>Solução</strong>tenant_id em todas as tabelas principais, aplicado de forma consistente nas queries e reforçado por middleware de permissão com hierarquia de papéis.</div>
+      </div>
+      <div class="challenge-card">
+        <div class="tag">Concorrência e integridade financeira</div>
+        <h4>Mercado de transferências com lances</h4>
+        <p>Dois jogadores podem dar lance ao mesmo tempo no mesmo atleta. O sistema precisa de retenção de saldo, devolução automática ao ser superado, e expiração de ofertas com transferência atômica.</p>
+        <div class="sol"><strong>Solução</strong>Uso de transações com bloqueio pessimista (SELECT ... FOR UPDATE) e um comando scheduler (market:process-auctions) que roda a cada 30 segundos para fechar leilões e transferir jogadores.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="draft" class="draft-section">
+  <div class="wrap draft-layout">
+    <div>
+      <div class="snake-row-label">Rodada 1 →</div>
+      <div class="snake-grid">
+        <div class="snake-row"><div class="snake-cell lit">T1</div><div class="snake-cell">T2</div><div class="snake-cell">T3</div><div class="snake-cell">T4</div></div>
+        <div class="snake-row-label" style="margin-top:2px;">← Rodada 2</div>
+        <div class="snake-row reverse"><div class="snake-cell">T4</div><div class="snake-cell">T3</div><div class="snake-cell">T2</div><div class="snake-cell">T1</div></div>
+        <div class="snake-row-label" style="margin-top:2px;">Rodada 3 →</div>
+        <div class="snake-row"><div class="snake-cell">T1</div><div class="snake-cell">T2</div><div class="snake-cell">T3</div><div class="snake-cell">T4</div></div>
+        <div class="snake-row-label" style="margin-top:2px;">⋮ até a rodada 10</div>
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow">Como funciona o draft</div>
+      <h2 style="font-size:30px;">Ordem serpentine, justa do início ao fim.</h2>
+      <div class="draft-facts">
+        <div class="draft-fact"><div class="n">1</div><p><strong>Ordem invertida a cada rodada</strong> — quem escolheu por último na rodada 1 escolhe primeiro na rodada 2.</p></div>
+        <div class="draft-fact"><div class="n">2</div><p><strong>10 rodadas fixas por time</strong> — total de picks é sempre times × 10.</p></div>
+        <div class="draft-fact"><div class="n">3</div><p><strong>Elenco elegível controlado</strong> — só jogadores vinculados a clube, entre os 500 melhores por overall.</p></div>
+        <div class="draft-fact"><div class="n">4</div><p><strong>Timer de 30 segundos</strong> por turno, com pausa, retomada e finalização automática que já gera as partidas.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="regras">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Regras de negócio</div>
+      <h2>O motor por trás da liga.</h2>
+    </div>
+    <table class="rules-table">
+      <tr><th>Área</th><th>Regra</th></tr>
+      <tr><td class="area">Tenant</td><td>Cada admin tem seu próprio tenant. Todos os recursos são isolados por <span class="mono">tenant_id</span>.</td></tr>
+      <tr><td class="area">Campeonato</td><td>Entre 2 e 32 times por liga. Status avança sozinho: inscrições → draft → andamento → encerrado.</td></tr>
+      <tr><td class="area">Time</td><td>Um usuário só pode ter um time por campeonato. Número de times nunca ultrapassa o limite configurado.</td></tr>
+      <tr><td class="area">Draft</td><td>Apenas jogadores vinculados a clube, entre os 500 melhores por overall. 10 rodadas fixas, 30 segundos por turno.</td></tr>
+      <tr><td class="area">Partida</td><td>Resultado inserido pelo admin. Ao validar, a classificação é recalculada automaticamente.</td></tr>
+      <tr><td class="area">Classificação</td><td>Calculada a partir das partidas validadas: vitória vale 3, empate 1, derrota 0 — desempate por saldo e gols marcados.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Roadmap</div>
+      <h2>Projeto em desenvolvimento ativo.</h2>
+      <p>Sigo evoluindo o Esport Arena em sprints — próximos passos abaixo.</p>
+    </div>
+    <div class="roadmap">
+      <div class="rm-item done"><div class="sprint">Sprint 1</div><h4>Correções e dívida técnica</h4><p>N+1, transações, namespaces, typos, código morto removido.</p></div>
+      <div class="rm-item done"><div class="sprint">Sprint 2</div><h4>Middleware de role + permissões</h4><p>Hierarquia ceo > admin > player, rotas protegidas.</p></div>
+      <div class="rm-item done"><div class="sprint">Sprint 3</div><h4>Polimentos do MVP</h4><p>current_round, artilheiros, CRUD times/usuários, auditoria, soft deletes.</p></div>
+      <div class="rm-item done"><div class="sprint">Sprint 4</div><h4>Páginas do jogador com dados reais</h4><p>Home, Time, Partidas, Classificação — tudo dinâmico.</p></div>
+      <div class="rm-item done"><div class="sprint">Sprint 5</div><h4>Dashboard admin com estatísticas e gráficos</h4><p>Visão consolidada do negócio com números reais de uso.</p></div>
+      <div class="rm-item done"><div class="sprint">Sprint 6</div><h4>Mercado de transferências</h4><p>Leilão, compra direta, anti-snipe, expiração automática.</p></div>
+      <div class="rm-item current"><div class="sprint">Sprint 7 · em andamento</div><h4>Páginas CEO</h4><p>Gestão de tenants, relatórios, logs e switcher de auditoria.</p></div>
+      <div class="rm-item"><div class="sprint">Sprint 8</div><h4>Time estável entre temporadas</h4><p>Refatoração de times com pivot de campeonato para manter elencos entre edições.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="contato">
+  <div class="wrap">
+    <div class="final-cta">
+      <div class="eyebrow" style="justify-content:center;">Vamos conversar</div>
+      <h2>Gostou do projeto? Bora trocar uma ideia.</h2>
+      <p>O repositório é privado, mas posso te mostrar o código, decisões de arquitetura e uma demonstração ao vivo.</p>
+      <div class="hero-cta">
+        <a href="https://www.linkedin.com/in/alexander-hartmann17/" class="btn-primary">Conectar no LinkedIn →</a>
+        <a href="mailto:alexalveshart@gmail.com" class="btn-ghost">Enviar e-mail</a>
+        <a href="https://github.com/alex-hartmann/arena-esports/" class="btn-ghost" style="border-color:var(--green);color:var(--green);">📄 Ver README.md</a>
+      </div>
+      <p class="note">Repositório privado · código e demonstração disponíveis mediante solicitação</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="fmark">ESPORT ARENA <span class="badge">CASE STUDY</span></div>
+    <div class="flinks">
+      <a href="https://www.linkedin.com/in/alexander-hartmann17/">LinkedIn</a>
+      <a href="mailto:alexalveshart@gmail.com">E-mail</a>
+      <a href="#telas">Telas</a>
+    </div>
+    <p class="copy">Feito com ❤️ para organizadores de ligas de FIFA/EA FC.</p>
+  </div>
+</footer>
+
+<script>
+// ===== Lightbox JavaScript puro =====
+function openLightbox(imgElement) {
+  var overlay = document.getElementById('lightbox');
+  var img = document.getElementById('lightbox-img');
+  // Usa a imagem clicada ou, se existir, o atributo data-full para versão em alta resolução
+  var src = imgElement.getAttribute('data-full') || imgElement.src;
+  img.src = src;
+  img.alt = imgElement.alt || '';
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox(e) {
+  // Fecha apenas se o clique for no overlay ou no botão X
+  var overlay = document.getElementById('lightbox');
+  var target = e.target;
+  if (target === overlay || target.classList.contains('lightbox-close') || target === document.getElementById('lightbox-img')) {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+// Fechar com tecla ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var overlay = document.getElementById('lightbox');
+    if (overlay.classList.contains('active')) {
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+});
+
+// Garantir que cliques na imagem não disparem o fechamento
+document.getElementById('lightbox-img').addEventListener('click', function(e) {
+  e.stopPropagation();
+});
+</script>
+
+</body>
+</html>
